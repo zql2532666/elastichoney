@@ -113,6 +113,26 @@ type Headers struct {
 	AcceptLanguage string `json:"accept_language"`
 }
 
+// get local ip
+func getIP() string{
+	addrs, err := net.InterfaceAddrs()
+	if err != nil {
+		os.Stderr.WriteString("Oops: " + err.Error() + "\n")
+		os.Exit(1)
+	}
+
+	for _, a := range addrs {
+		if ipnet, ok := a.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
+			if ipnet.IP.To4() != nil {
+				// os.Stdout.WriteString(ipnet.IP.String() + "\n")
+				return ipnet.IP.String()
+			}
+		}
+	}
+
+	return "1.1.1.1"
+}
+
 // FakeBanner presents a fake elasticsearch banner for the index page
 // TODO: Change Name to be randomly generated from real elasticsearch choices
 // Make sure to keep name consistent for the same remote IP
@@ -362,7 +382,7 @@ func main() {
 		Conf.SensorIP = strings.TrimSpace(string(ip))
 		resp.Body.Close()
 	} else {
-		Conf.SensorIP = "1.1.1.1"
+		Conf.SensorIP = getIP()
 	}
 	if *verboseFlag {
 		logger.Printf("Using sensor ip: %s", Conf.SensorIP)
